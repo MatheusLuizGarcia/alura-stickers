@@ -1,4 +1,6 @@
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -44,7 +46,7 @@ public class App {
         String corBody = corDefault + "\u001b[30;1m";      //cor de destaque do texto em geral
 
         // fazer uma conexão HTTP e buscar os top 250 filmes
-        String url = "https://raw.githubusercontent.com/alexfelipe/imersao-java/json/top250.json";
+        String url = "https://raw.githubusercontent.com/alura-cursos/imersao-java/api/TopMovies.json";
         URI endereco = URI.create(url);
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder(endereco).GET().build();
@@ -55,42 +57,49 @@ public class App {
         var parser = new JsonParser();
         List<Map<String, String>> listaDeFilmes = parser.parse(body);
         
+        // criar figurinhas
+        var geradora = new GeradorDeFigurinhas();
+
         // exibir e manipular os dados
-        
         for (Map<String,String> filme : listaDeFilmes) {
+
+            // notas em emoji de estrela
+
+            String notaEstrela = "";
+            String unicodeEstrela = "* ";
+            double estrela = Double.valueOf(filme.get("imDbRating"));
 
             //formatar cores de saída do terminal
 
             String titulo = "Título..: " + corTitulo + filme.get("title");
             String imagem = "Imagem..: " + corLink + filme.get("image");
             String classificacao = "Nota....: " +  corNota + filme.get("imDbRating");
-
             
             titulo = corBody + titulo + corDefault; 
             imagem = corBody + imagem + corDefault;
             classificacao = corBody + classificacao + corDefault;
 
-            // notas em emoji de estrela
+            //printar informações e criar figurinhas
 
-            String notaEstrela = "";
-            String unicodeEstrela = "\u2B50";
-            double estrela = Double.valueOf(filme.get("imDbRating"));
+            String urlImagem = filme.get("image");
 
-            //printar informações
+            InputStream inputStream = new URL(urlImagem).openStream();
+            String nomeArquivo = titulo + ".png";
 
             int i;
 
-            System.out.println("=========================================================================");
-            notaEstrela = "";
+            System.out.println("=======================================");
+            notaEstrela = corBody + corNota + "";
             System.out.println(titulo);
             System.out.println(imagem);
             System.out.println(classificacao);
             for( i = 0; i < estrela; i++) {
                 notaEstrela += unicodeEstrela;    
             }
+            notaEstrela += corDefault;
             System.out.println(notaEstrela);
-
-	
+            
+            geradora.criar(inputStream, nomeArquivo, estrela);
         }
     }
 }
